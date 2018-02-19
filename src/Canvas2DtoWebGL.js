@@ -171,6 +171,7 @@ function enableWebGLCanvas( canvas, options )
 	var tmp_vec4b = vec4.create();
 	var tmp_vec2b = vec2.create();
 	ctx._stack = [];
+	ctx._alphaCache = [];
 	var global_angle = 0;
 	var viewport = vec2.fromValues(1,1);
 
@@ -195,8 +196,10 @@ function enableWebGLCanvas( canvas, options )
 	}
 
 	ctx.save = function() {
-		if(this._stack.length < 32)
+		if(this._stack.length < 32){
 			this._stack.push( mat3.clone( this._matrix ) );
+		}
+		ctx._alphaCache.push(this.globalAlpha);
 	}
 
 	ctx.restore = function() {
@@ -213,18 +216,21 @@ function enableWebGLCanvas( canvas, options )
 			gl.disable( gl.STENCIL_TEST );
 			stencil_enabled = false;
 		}
+		if(ctx._alphaCache.length > 0){
+			this.globalAlpha = ctx._alphaCache.pop();
+		}
 	}
 
 	ctx.transform = function(a,b,c,d,e,f) {
 		var m = tmp_mat3;
 		m[0] = a;
-		m[1] = c;
-		m[2] = e;
-		m[3] = b;
+		m[1] = b;
+		m[2] = 0;
+		m[3] = c;
 		m[4] = d;
-		m[5] = f;
-		m[6] = 0;
-		m[7] = 0;
+		m[5] = 0;
+		m[6] = e;
+		m[7] = f;
 		m[8] = 1;
 
 		mat3.multiply( this._matrix, this._matrix, m );
@@ -234,13 +240,13 @@ function enableWebGLCanvas( canvas, options )
 	ctx.setTransform = function(a,b,c,d,e,f) {
 		var m = this._matrix;
 		m[0] = a;
-		m[1] = c;
-		m[2] = e;
-		m[3] = b;
+		m[1] = b;
+		m[2] = 0;
+		m[3] = c;
 		m[4] = d;
-		m[5] = f;
-		m[6] = 0;
-		m[7] = 0;
+		m[5] = 0;
+		m[6] = e;
+		m[7] = f;
 		m[8] = 1;
 		//this._matrix.set([a,c,e,b,d,f,0,0,1]);
 		global_angle = Math.atan2( this._matrix[0], this._matrix[1] );
