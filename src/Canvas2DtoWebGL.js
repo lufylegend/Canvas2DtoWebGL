@@ -1,6 +1,3 @@
-//replaces the Canvas2D functions by WebGL functions, the behaviour is not 100% the same but it kind of works in many cases
-//not all functions have been implemented
-
 if(typeof(GL) == "undefined")
 	throw("litegl.js must be included to use enableWebGLCanvas");
 
@@ -58,7 +55,8 @@ function enableWebGLCanvas( canvas, options )
 	var quad_mesh = GL.Mesh.getScreenQuad();
 	var is_rect = false;
 	var extra_projection = mat4.create();
-	var stencil_enabled = false;
+  //var stencil_enabled = false;
+  var stencil_enabled = 0;
 	var anisotropic = options.anisotropic !== undefined ? options.anisotropic : 2;
 
 	var uniforms = {
@@ -199,7 +197,10 @@ function enableWebGLCanvas( canvas, options )
 		if(this._stack.length < 32){
 			this._stack.push( mat3.clone( this._matrix ) );
 		}
-		ctx._alphaCache.push(this.globalAlpha);
+    ctx._alphaCache.push(this.globalAlpha);
+    if(stencil_enabled > 0){
+      stencil_enabled++;
+    }
 	}
 
 	ctx.restore = function() {
@@ -208,13 +209,14 @@ function enableWebGLCanvas( canvas, options )
 		else
 			mat3.identity( this._matrix );
 		global_angle = Math.atan2( this._matrix[3], this._matrix[4] ); //use up vector
-		if(	stencil_enabled )
+    //if(	stencil_enabled )
+    if(stencil_enabled-- == 0)
 		{
 			gl.enable( gl.STENCIL_TEST );
 			gl.clearStencil( 0x0 );
 			gl.clear( gl.STENCIL_BUFFER_BIT );
 			gl.disable( gl.STENCIL_TEST );
-			stencil_enabled = false;
+      //stencil_enabled = false;
 		}
 		if(ctx._alphaCache.length > 0){
 			this.globalAlpha = ctx._alphaCache.pop();
@@ -883,7 +885,8 @@ function enableWebGLCanvas( canvas, options )
 		
 		this.fill();
 
-		stencil_enabled = true;		
+    //stencil_enabled = true;	
+    stencil_enabled++;
 		gl.colorMask(true, true, true, true);
 		gl.depthMask(true);
 		gl.stencilFunc( gl.EQUAL, 1, 0xFF );
