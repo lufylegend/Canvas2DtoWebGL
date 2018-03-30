@@ -210,7 +210,7 @@ function enableWebGLCanvas( canvas, options )
 			mat3.identity( this._matrix );
 		global_angle = Math.atan2( this._matrix[3], this._matrix[4] ); //use up vector
     //if(	stencil_enabled )
-    if(stencil_enabled-- == 0)
+    if(--stencil_enabled <= 0)
 		{
 			gl.enable( gl.STENCIL_TEST );
 			gl.clearStencil( 0x0 );
